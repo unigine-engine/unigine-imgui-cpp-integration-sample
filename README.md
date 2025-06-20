@@ -1,1 +1,3 @@
-# unigine-imgui-cpp-integration-sample
+# Unigine Imgui cpp integration sample
+
+# TODO: add github-like description here 
