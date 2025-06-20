@@ -1,0 +1,34 @@
+# generic
+.thumbnails
+bin/*
+data/.thumbnails
+data/microprofile_dump_html
+junk
+obj
+source/x64
+CMakeCache.txt
+source/**/*.obj
+unigine_editor.cfg
+*.cache
+*.modified
+*.tlog
+
+#cmake
+build-*
+CMakeFiles
+CMakeScripts
+CMakeCache.txt
+cmake_install.cmake
+CMakeUserPresets.json
+compile_commands.json
+CTestTestfile.cmake
+CMakeLists.txt.user
+
+# for sample
+include/
+lib/
+utils/
+data/.runtimes
+data/configs
+data/*.ung
+!bin/imgui.ini
