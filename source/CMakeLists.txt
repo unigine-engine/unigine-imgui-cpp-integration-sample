@@ -14,7 +14,7 @@ set(CMAKE_CXX_EXTENSIONS FALSE)
 ## Environment.
 ##==============================================================================
 set(UNIGINE_DOUBLE False CACHE BOOL "Double coords")
-set(UNIGINE_SDK_PATH ${PROJECT_SOURCE_DIR}/../)
+set(UNIGINE_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/../)
 set(UNIGINE_BIN_DIR ${UNIGINE_SDK_PATH}bin)
 set(UNIGINE_LIB_DIR ${UNIGINE_SDK_PATH}lib)
 set(UNIGINE_INCLUDE_DIR ${UNIGINE_SDK_PATH}include)
@@ -129,9 +129,6 @@ elseif(UNIGINE_COMPILER_IS_GNU OR UNIGINE_COMPILER_IS_CLANG)
 endif ()
 
 set(binary_name ${target})
-if (UNIGINE_DOUBLE)
-	string(APPEND binary_name "_double")
-endif ()
 string(APPEND binary_name "_x64")
 set_target_properties(${target} PROPERTIES DEBUG_POSTFIX "d")
 set_target_properties(${target} PROPERTIES OUTPUT_NAME ${binary_name})

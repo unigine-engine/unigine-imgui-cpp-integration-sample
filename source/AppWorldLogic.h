@@ -18,9 +18,6 @@ public:
 	int updatePhysics() override;
 
 	int shutdown() override;
-
-	int save(const Unigine::StreamPtr &stream) override;
-	int restore(const Unigine::StreamPtr &stream) override;
 };
 
 #endif // __APP_WORLD_LOGIC_H__

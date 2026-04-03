@@ -1,6 +1,7 @@
 #pragma once
-#include <UnigineInput.h>
 #include "imgui/imgui.h"
+
+#include <UnigineInput.h>
 
 class ImGuiImpl
 {
@@ -11,7 +12,6 @@ public:
 	static void shutdown();
 
 private:
-
 	static ImGuiStyle source_style;
 	static float last_scale;
 

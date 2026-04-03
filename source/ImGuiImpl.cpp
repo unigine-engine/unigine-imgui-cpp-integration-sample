@@ -1,14 +1,14 @@
 #include "ImGuiImpl.h"
 
-#include <UnigineTextures.h>
-#include <UnigineMeshDynamic.h>
-#include <UnigineMaterials.h>
-#include <UnigineRender.h>
-#include <UnigineGui.h>
 #include <UnigineControls.h>
 #include <UnigineEngine.h>
-#include <UnigineWindowManager.h>
+#include <UnigineGui.h>
+#include <UnigineMaterials.h>
+#include <UnigineMeshDynamic.h>
+#include <UnigineRender.h>
+#include <UnigineTextures.h>
 #include <UnigineViewport.h>
+#include <UnigineWindowManager.h>
 
 using namespace Unigine;
 
@@ -17,7 +17,6 @@ static MeshDynamicPtr imgui_mesh;
 static MaterialPtr imgui_material;
 static ImDrawData *frame_draw_data;
 
-static int saved_mouse = 0;
 static EventConnections connections;
 
 ImGuiStyle ImGuiImpl::source_style;
@@ -25,66 +24,72 @@ float ImGuiImpl::last_scale = 1.0f;
 
 Unigine::Input::MOUSE_HANDLE ImGuiImpl::prev_mouse_handle;
 
-ImVec2 operator*(const ImVec2 &vec, const float value) { return ImVec2(vec.x * value, vec.y * value); }
+static ImGuiKey keymap[Input::NUM_KEYS];
 
-static int on_key_pressed(Input::KEY key)
+static ImVec2 operator*(const ImVec2 &a, float b)
 {
-	auto &io = ImGui::GetIO();
-	io.KeysDown[key] = true;
-	return 0;
+	return ImVec2(a.x * b, a.y * b);
 }
 
-static int on_key_released(Input::KEY key)
+static int on_key_event(Input::KEY key, bool down)
 {
 	auto &io = ImGui::GetIO();
-	io.KeysDown[key] = false;
-	return 0;
-}
+	io.AddKeyEvent(keymap[key], down);
 
-static int on_button_pressed(Input::MOUSE_BUTTON button)
-{
-	auto &io = ImGui::GetIO();
-
-	switch (button)
+	switch (keymap[key])
 	{
-	case Input::MOUSE_BUTTON_LEFT:
-		io.MouseDown[0] = true;
-		break;
-	case Input::MOUSE_BUTTON_RIGHT:
-		io.MouseDown[1] = true;
-		break;
-	case Input::MOUSE_BUTTON_MIDDLE:
-		io.MouseDown[2] = true;
-		break;
+	case ImGuiKey_LeftCtrl:
+	case ImGuiKey_RightCtrl: io.AddKeyEvent(ImGuiMod_Ctrl, down); break;
+	case ImGuiKey_LeftShift:
+	case ImGuiKey_RightShift: io.AddKeyEvent(ImGuiMod_Shift, down); break;
+	case ImGuiKey_LeftAlt:
+	case ImGuiKey_RightAlt: io.AddKeyEvent(ImGuiMod_Alt, down); break;
+	case ImGuiKey_LeftSuper:
+	case ImGuiKey_RightSuper: io.AddKeyEvent(ImGuiMod_Super, down); break;
+	default: break;
 	}
 
 	return 0;
 }
 
-static int on_button_released(Input::MOUSE_BUTTON button)
+static int on_mouse_button_event(Input::MOUSE_BUTTON button, bool down)
 {
 	auto &io = ImGui::GetIO();
 
 	switch (button)
 	{
-	case Input::MOUSE_BUTTON_LEFT:
-		io.MouseDown[0] = false;
-		break;
-	case Input::MOUSE_BUTTON_RIGHT:
-		io.MouseDown[1] = false;
-		break;
-	case Input::MOUSE_BUTTON_MIDDLE:
-		io.MouseDown[2] = false;
-		break;
+	case Input::MOUSE_BUTTON_LEFT: io.AddMouseButtonEvent(ImGuiMouseButton_Left, down); break;
+	case Input::MOUSE_BUTTON_RIGHT: io.AddMouseButtonEvent(ImGuiMouseButton_Right, down); break;
+	case Input::MOUSE_BUTTON_MIDDLE: io.AddMouseButtonEvent(ImGuiMouseButton_Middle, down); break;
+	default: break;
 	}
 
 	return 0;
+}
+
+static int on_key_down(Input::KEY key)
+{
+	return on_key_event(key, true);
+}
+
+static int on_key_up(Input::KEY key)
+{
+	return on_key_event(key, false);
+}
+
+static int on_mouse_button_down(Input::MOUSE_BUTTON button)
+{
+	return on_mouse_button_event(button, true);
+}
+
+static int on_mouse_button_up(Input::MOUSE_BUTTON button)
+{
+	return on_mouse_button_event(button, false);
 }
 
 static int on_unicode_key_pressed(unsigned int key)
 {
 	auto &io = ImGui::GetIO();
-
 	io.AddInputCharacter(key);
 
 	return 0;
@@ -114,9 +119,9 @@ static void create_font_texture()
 	auto blob = Blob::create();
 	blob->setData(pixels, width * height * 32);
 	font_texture->setBlob(blob);
-	blob->setData(nullptr,0);
+	blob->setData(nullptr, 0);
 
-	io.Fonts->TexID = font_texture.get();
+	io.Fonts->SetTexID(font_texture.get());
 }
 
 static void create_imgui_mesh()
@@ -135,7 +140,8 @@ static void create_imgui_mesh()
 	attributes[2].type = MeshDynamic::TYPE_UCHAR;
 	imgui_mesh->setVertexFormat(attributes, 3);
 
-	assert(imgui_mesh->getVertexSize() == sizeof(ImDrawVert) && "Vertex size of MeshDynamic is not equal to size of ImDrawVert");
+	assert(imgui_mesh->getVertexSize() == sizeof(ImDrawVert)
+		&& "Vertex size of MeshDynamic is not equal to size of ImDrawVert");
 }
 
 static void create_imgui_material()
@@ -155,13 +161,17 @@ static void before_render_callback()
 static void draw_callback()
 {
 	if (frame_draw_data == nullptr)
+	{
 		return;
+	}
 
 	auto draw_data = frame_draw_data;
 	frame_draw_data = nullptr;
 
 	if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
+	{
 		return;
+	}
 
 	auto render_target = Render::getTemporaryRenderTarget();
 	render_target->bindColorTexture(0, Renderer::getTextureColor());
@@ -169,11 +179,13 @@ static void draw_callback()
 	// Render state
 	RenderState::saveState();
 	RenderState::clearStates();
-	RenderState::setBlendFunc(RenderState::BLEND_SRC_ALPHA, RenderState::BLEND_ONE_MINUS_SRC_ALPHA, RenderState::BLEND_OP_ADD);
+	RenderState::setBlendFunc(RenderState::BLEND_SRC_ALPHA, RenderState::BLEND_ONE_MINUS_SRC_ALPHA,
+		RenderState::BLEND_OP_ADD);
 	RenderState::setPolygonCull(RenderState::CULL_NONE);
 	RenderState::setDepthFunc(RenderState::DEPTH_NONE);
-	RenderState::setViewport(static_cast<int>(draw_data->DisplayPos.x), static_cast<int>(draw_data->DisplayPos.y),
-		static_cast<int>(draw_data->DisplaySize.x),static_cast<int>(draw_data->DisplaySize.y));
+	RenderState::setViewport(static_cast<int>(draw_data->DisplayPos.x),
+		static_cast<int>(draw_data->DisplayPos.y), static_cast<int>(draw_data->DisplaySize.x),
+		static_cast<int>(draw_data->DisplaySize.y));
 
 	// Orthographic projection matrix
 	float left = draw_data->DisplayPos.x;
@@ -195,7 +207,7 @@ static void draw_callback()
 	auto pass = imgui_material->getRenderPass("imgui");
 	Renderer::setShaderParameters(pass, shader, imgui_material, false);
 
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 
 	imgui_mesh->bind();
 
@@ -230,22 +242,25 @@ static void draw_callback()
 				if (cmd->UserCallback != nullptr)
 				{
 					if (cmd->UserCallback != ImDrawCallback_ResetRenderState)
+					{
 						cmd->UserCallback(cmd_list, cmd);
+					}
 				}
 				else
 				{
 					float width = (cmd->ClipRect.z - cmd->ClipRect.x) / draw_data->DisplaySize.x;
 					float height = (cmd->ClipRect.w - cmd->ClipRect.y) / draw_data->DisplaySize.y;
 					float x = (cmd->ClipRect.x - clip_off.x) / draw_data->DisplaySize.x;
-					float y = 1.0f - height - (cmd->ClipRect.y - clip_off.y) / draw_data->DisplaySize.y;
+					float y = 1.0f - height
+						- (cmd->ClipRect.y - clip_off.y) / draw_data->DisplaySize.y;
 
-					if (cmd->TextureId == 0 || cmd->TextureId == io.Fonts->TexID)
+					if (cmd->GetTexID() == 0 || cmd->GetTexID() == io.Fonts->TexRef.GetTexID())
 					{
 						RenderState::setTexture(RenderState::BIND_FRAGMENT, 0, font_texture);
 					}
 					else
 					{
-						auto texture = TexturePtr(static_cast<Texture*>(cmd->TextureId));
+						auto texture = TexturePtr(reinterpret_cast<Texture *>(cmd->GetTexID()));
 						RenderState::setTexture(RenderState::BIND_FRAGMENT, 0, texture);
 					}
 
@@ -253,8 +268,7 @@ static void draw_callback()
 					RenderState::flushStates();
 
 					imgui_mesh->renderInstancedSurface(MeshDynamic::MODE_TRIANGLES,
-						cmd->VtxOffset + global_vtx_offset,
-						cmd->IdxOffset + global_idx_offset,
+						cmd->VtxOffset + global_vtx_offset, cmd->IdxOffset + global_idx_offset,
 						cmd->IdxOffset + global_idx_offset + cmd->ElemCount, 1);
 				}
 			}
@@ -288,11 +302,11 @@ void ImGuiImpl::init()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 
-	Input::getEventKeyDown().connect(connections, on_key_pressed);
-	Input::getEventKeyUp().connect(connections, on_key_released);
+	Input::getEventKeyDown().connect(connections, on_key_down);
+	Input::getEventKeyUp().connect(connections, on_key_up);
 
-	Input::getEventMouseDown().connect(connections, on_button_pressed);
-	Input::getEventMouseUp().connect(connections, on_button_released);
+	Input::getEventMouseDown().connect(connections, on_mouse_button_down);
+	Input::getEventMouseUp().connect(connections, on_mouse_button_up);
 
 	Input::getEventTextPress().connect(connections, on_unicode_key_pressed);
 
@@ -307,28 +321,128 @@ void ImGuiImpl::init()
 	io.BackendPlatformName = "imgui_impl_unigine";
 	io.BackendRendererName = "imgui_impl_unigine";
 
-	io.KeyMap[ImGuiKey_Tab] = Input::KEY_TAB;
-	io.KeyMap[ImGuiKey_LeftArrow] = Input::KEY_LEFT;
-	io.KeyMap[ImGuiKey_RightArrow] = Input::KEY_RIGHT;
-	io.KeyMap[ImGuiKey_UpArrow] = Input::KEY_UP;
-	io.KeyMap[ImGuiKey_DownArrow] = Input::KEY_DOWN;
-	io.KeyMap[ImGuiKey_PageUp] = Input::KEY_PGUP;
-	io.KeyMap[ImGuiKey_PageDown] = Input::KEY_PGDOWN;
-	io.KeyMap[ImGuiKey_Home] = Input::KEY_HOME;
-	io.KeyMap[ImGuiKey_End] = Input::KEY_END;
-	io.KeyMap[ImGuiKey_Insert] = Input::KEY_INSERT;
-	io.KeyMap[ImGuiKey_Delete] = Input::KEY_DELETE;
-	io.KeyMap[ImGuiKey_Backspace] = Input::KEY_BACKSPACE;
-	io.KeyMap[ImGuiKey_Space] = Input::KEY_SPACE;
-	io.KeyMap[ImGuiKey_Enter] = Input::KEY_ENTER;
-	io.KeyMap[ImGuiKey_Escape] = Input::KEY_ESC;
-	io.KeyMap[ImGuiKey_KeyPadEnter] = Input::KEY_ENTER;
-	io.KeyMap[ImGuiKey_A] = Input::KEY_A;
-	io.KeyMap[ImGuiKey_C] = Input::KEY_C;
-	io.KeyMap[ImGuiKey_V] = Input::KEY_V;
-	io.KeyMap[ImGuiKey_X] = Input::KEY_X;
-	io.KeyMap[ImGuiKey_Y] = Input::KEY_Y;
-	io.KeyMap[ImGuiKey_Z] = Input::KEY_Z;
+	// https://github.com/ocornut/imgui/issues/4921
+
+	keymap[Input::KEY_ESC] = ImGuiKey_Escape;
+	keymap[Input::KEY_F1] = ImGuiKey_F1;
+	keymap[Input::KEY_F2] = ImGuiKey_F2;
+	keymap[Input::KEY_F3] = ImGuiKey_F3;
+	keymap[Input::KEY_F4] = ImGuiKey_F4;
+	keymap[Input::KEY_F5] = ImGuiKey_F5;
+	keymap[Input::KEY_F6] = ImGuiKey_F6;
+	keymap[Input::KEY_F7] = ImGuiKey_F7;
+	keymap[Input::KEY_F8] = ImGuiKey_F8;
+	keymap[Input::KEY_F9] = ImGuiKey_F9;
+	keymap[Input::KEY_F10] = ImGuiKey_F10;
+	keymap[Input::KEY_F11] = ImGuiKey_F11;
+	keymap[Input::KEY_F12] = ImGuiKey_F12;
+	keymap[Input::KEY_PRINTSCREEN] = ImGuiKey_None;
+	keymap[Input::KEY_SCROLL_LOCK] = ImGuiKey_None;
+	keymap[Input::KEY_PAUSE] = ImGuiKey_None;
+	keymap[Input::KEY_BACK_QUOTE] = ImGuiKey_None;
+	keymap[Input::KEY_DIGIT_1] = ImGuiKey_1;
+	keymap[Input::KEY_DIGIT_2] = ImGuiKey_2;
+	keymap[Input::KEY_DIGIT_3] = ImGuiKey_3;
+	keymap[Input::KEY_DIGIT_4] = ImGuiKey_4;
+	keymap[Input::KEY_DIGIT_5] = ImGuiKey_5;
+	keymap[Input::KEY_DIGIT_6] = ImGuiKey_6;
+	keymap[Input::KEY_DIGIT_7] = ImGuiKey_7;
+	keymap[Input::KEY_DIGIT_8] = ImGuiKey_8;
+	keymap[Input::KEY_DIGIT_9] = ImGuiKey_9;
+	keymap[Input::KEY_DIGIT_0] = ImGuiKey_0;
+	keymap[Input::KEY_MINUS] = ImGuiKey_Minus;
+	keymap[Input::KEY_EQUALS] = ImGuiKey_Equal;
+	keymap[Input::KEY_BACKSPACE] = ImGuiKey_Backspace;
+	keymap[Input::KEY_TAB] = ImGuiKey_Tab;
+	keymap[Input::KEY_Q] = ImGuiKey_Q;
+	keymap[Input::KEY_W] = ImGuiKey_W;
+	keymap[Input::KEY_E] = ImGuiKey_E;
+	keymap[Input::KEY_R] = ImGuiKey_R;
+	keymap[Input::KEY_T] = ImGuiKey_T;
+	keymap[Input::KEY_Y] = ImGuiKey_Y;
+	keymap[Input::KEY_U] = ImGuiKey_U;
+	keymap[Input::KEY_I] = ImGuiKey_I;
+	keymap[Input::KEY_O] = ImGuiKey_O;
+	keymap[Input::KEY_P] = ImGuiKey_P;
+	keymap[Input::KEY_LEFT_BRACKET] = ImGuiKey_LeftBracket;
+	keymap[Input::KEY_RIGHT_BRACKET] = ImGuiKey_RightBracket;
+	keymap[Input::KEY_ENTER] = ImGuiKey_Enter;
+	keymap[Input::KEY_CAPS_LOCK] = ImGuiKey_CapsLock;
+	keymap[Input::KEY_A] = ImGuiKey_A;
+	keymap[Input::KEY_S] = ImGuiKey_S;
+	keymap[Input::KEY_D] = ImGuiKey_D;
+	keymap[Input::KEY_F] = ImGuiKey_F;
+	keymap[Input::KEY_G] = ImGuiKey_G;
+	keymap[Input::KEY_H] = ImGuiKey_H;
+	keymap[Input::KEY_J] = ImGuiKey_J;
+	keymap[Input::KEY_K] = ImGuiKey_K;
+	keymap[Input::KEY_L] = ImGuiKey_L;
+	keymap[Input::KEY_SEMICOLON] = ImGuiKey_Semicolon;
+	keymap[Input::KEY_QUOTE] = ImGuiKey_None;
+	keymap[Input::KEY_BACK_SLASH] = ImGuiKey_Backslash;
+	keymap[Input::KEY_LEFT_SHIFT] = ImGuiKey_LeftShift;
+	keymap[Input::KEY_LESS] = ImGuiKey_None;
+	keymap[Input::KEY_Z] = ImGuiKey_Z;
+	keymap[Input::KEY_X] = ImGuiKey_X;
+	keymap[Input::KEY_C] = ImGuiKey_C;
+	keymap[Input::KEY_V] = ImGuiKey_V;
+	keymap[Input::KEY_B] = ImGuiKey_B;
+	keymap[Input::KEY_N] = ImGuiKey_N;
+	keymap[Input::KEY_M] = ImGuiKey_M;
+	keymap[Input::KEY_COMMA] = ImGuiKey_Comma;
+	keymap[Input::KEY_DOT] = ImGuiKey_Comma;
+	keymap[Input::KEY_SLASH] = ImGuiKey_None;
+	keymap[Input::KEY_RIGHT_SHIFT] = ImGuiKey_RightShift;
+	keymap[Input::KEY_LEFT_CTRL] = ImGuiKey_LeftCtrl;
+	keymap[Input::KEY_LEFT_CMD] = ImGuiKey_LeftSuper;
+	keymap[Input::KEY_LEFT_ALT] = ImGuiKey_LeftAlt;
+	keymap[Input::KEY_SPACE] = ImGuiKey_Space;
+	keymap[Input::KEY_RIGHT_ALT] = ImGuiKey_RightAlt;
+	keymap[Input::KEY_RIGHT_CMD] = ImGuiKey_RightSuper;
+	keymap[Input::KEY_MENU] = ImGuiKey_None;
+	keymap[Input::KEY_RIGHT_CTRL] = ImGuiKey_RightCtrl;
+	keymap[Input::KEY_INSERT] = ImGuiKey_Insert;
+	keymap[Input::KEY_DELETE] = ImGuiKey_Delete;
+	keymap[Input::KEY_HOME] = ImGuiKey_Home;
+	keymap[Input::KEY_END] = ImGuiKey_End;
+	keymap[Input::KEY_PGUP] = ImGuiKey_PageUp;
+	keymap[Input::KEY_PGDOWN] = ImGuiKey_PageDown;
+	keymap[Input::KEY_UP] = ImGuiKey_UpArrow;
+	keymap[Input::KEY_LEFT] = ImGuiKey_LeftArrow;
+	keymap[Input::KEY_DOWN] = ImGuiKey_DownArrow;
+	keymap[Input::KEY_RIGHT] = ImGuiKey_RightArrow;
+	keymap[Input::KEY_NUM_LOCK] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIVIDE] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_MULTIPLY] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_MINUS] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_7] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_8] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_9] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_PLUS] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_4] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_5] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_6] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_1] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_2] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_3] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_ENTER] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DIGIT_0] = ImGuiKey_None;
+	keymap[Input::KEY_NUMPAD_DOT] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_SHIFT] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_CTRL] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_ALT] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_CMD] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_UP] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_LEFT] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_DOWN] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_RIGHT] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_ENTER] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_DELETE] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_INSERT] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_HOME] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_END] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_PGUP] = ImGuiKey_None;
+	keymap[Input::KEY_ANY_PGDOWN] = ImGuiKey_None;
 
 	io.SetClipboardTextFn = set_clipboard_text;
 	io.GetClipboardTextFn = get_clipboard_text;
@@ -338,12 +452,29 @@ void ImGuiImpl::init()
 	create_imgui_mesh();
 	create_imgui_material();
 
-	ImGui::StyleColorsDark();
+	{
+		ImGui::StyleColorsDark();
+		auto &style = ImGui::GetStyle();
+
+		{
+			style.FrameBorderSize = 1.f;
+			style.TabBorderSize = 1.f;
+		}
+
+		{
+			style.WindowRounding = 5.f;
+			style.ChildRounding = 4.f;
+			style.FrameRounding = 4.f;
+			style.PopupRounding = 4.f;
+			style.ScrollbarRounding = 12.f;
+			style.GrabRounding = 4.f;
+			style.LogSliderDeadzone = 4.f;
+			style.TabRounding = 4.f;
+		}
+	}
+
 	source_style = ImGui::GetStyle();
 }
-
-static bool previous_want_capture_mouse;
-static Input::MOUSE_HANDLE saved_mouse_handle;
 
 void ImGuiImpl::newFrame()
 {
@@ -356,7 +487,8 @@ void ImGuiImpl::newFrame()
 
 	auto &io = ImGui::GetIO();
 
-	io.DisplaySize = ImVec2(Math::toFloat(main_window->getClientRenderSize().x), Math::toFloat(main_window->getClientRenderSize().y));
+	io.DisplaySize = ImVec2(Math::toFloat(main_window->getClientRenderSize().x),
+		Math::toFloat(main_window->getClientRenderSize().y));
 	io.DeltaTime = Engine::get()->getIFps();
 
 	if (Input::isMouseGrab() == false)
@@ -368,31 +500,27 @@ void ImGuiImpl::newFrame()
 			Unigine::ControlsApp::setMouseDY(0);
 		}
 
-		io.KeyCtrl = Input::isKeyPressed(Input::KEY_ANY_CTRL);
-		io.KeyShift = Input::isKeyPressed(Input::KEY_ANY_SHIFT);
-		io.KeyAlt = Input::isKeyPressed(Input::KEY_ANY_ALT);;
-		io.KeySuper = Input::isKeyPressed(Input::KEY_ANY_CMD);
-
 		if (io.WantSetMousePos)
-			Input::setMousePosition(Math::ivec2(Math::ftoi(io.MousePos.x), Math::ftoi(io.MousePos.y)));
+		{
+			Input::setMousePosition(
+				Math::ivec2(Math::ftoi(io.MousePos.x), Math::ftoi(io.MousePos.y)));
+		}
 
-		const Math::ivec2 mouse_coord = Input::getMousePosition() - main_window->getClientPosition();
+		const Math::ivec2 mouse_coord = Input::getMousePosition()
+			- main_window->getClientPosition();
 
 		io.MousePos = ImVec2(static_cast<float>(mouse_coord.x), static_cast<float>(mouse_coord.y));
 
 		io.MouseWheel += static_cast<float>(Input::getMouseWheel());
 		io.MouseWheelH += static_cast<float>(Input::getMouseWheelHorizontal());
 
-		if (io.WantCaptureMouse)
-			Input::setMouseHandle(Input::MOUSE_HANDLE_SOFT);
-		else
-			Input::setMouseHandle(prev_mouse_handle);
+		Input::setMouseHandle(io.WantCaptureMouse ? Input::MOUSE_HANDLE_USER : prev_mouse_handle);
 	}
 
 	float scale = main_window->getDpiScale();
 	if (Math::compare(last_scale, scale) == 0)
 	{
-		auto & style = ImGui::GetStyle();
+		auto &style = ImGui::GetStyle();
 		last_scale = scale;
 
 		style.WindowPadding = source_style.WindowPadding * scale;
@@ -414,7 +542,14 @@ void ImGuiImpl::newFrame()
 		style.GrabRounding = source_style.GrabRounding * scale;
 		style.LogSliderDeadzone = source_style.LogSliderDeadzone * scale;
 		style.TabRounding = source_style.TabRounding * scale;
-		style.TabMinWidthForCloseButton = (source_style.TabMinWidthForCloseButton != FLT_MAX) ? (source_style.TabMinWidthForCloseButton * scale) : FLT_MAX;
+		style.TabCloseButtonMinWidthSelected = (source_style.TabCloseButtonMinWidthSelected
+												   != FLT_MAX)
+			? (source_style.TabCloseButtonMinWidthSelected * scale)
+			: FLT_MAX;
+		style.TabCloseButtonMinWidthUnselected = (source_style.TabCloseButtonMinWidthUnselected
+													 != FLT_MAX)
+			? (source_style.TabCloseButtonMinWidthUnselected * scale)
+			: FLT_MAX;
 		style.DisplayWindowPadding = source_style.DisplayWindowPadding * scale;
 		style.DisplaySafeAreaPadding = source_style.DisplaySafeAreaPadding * scale;
 		style.MouseCursorScale = source_style.MouseCursorScale * scale;
