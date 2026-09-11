@@ -4,5 +4,9 @@
 		".git",
 		".teamcity",
 		".thumbnails"
+	],
+	"guidsdb_ignore_filters": [
+		"*.gpu_cache",
+		"*.meta"
 	]
 }

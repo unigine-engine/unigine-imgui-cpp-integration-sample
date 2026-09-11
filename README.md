@@ -25,12 +25,9 @@ To get started with the **Dear Imgui C++ Sample**:
 
 3. **Add the sample project to SDK Browser**:
    - Go to the *My Projects* tab.
-   - Click *Add Existing*, select the `.project` file from the cloned folder (matching your OS - `*-win-*`/`*-lin-*`, edition, precision), and click *Import Project*.
+   - Click *Add Existing*, select the `.project` file from the cloned folder (matching your OS - `*_win_*`/`*_lin_*`, edition, precision), and click *Import Project*.
 
      ![Add Project](https://documentation-api.unigine.com/en/docs/latest/sdk/api_samples/third_party/photon/add_project.png)
-
-> [!NOTE]
-> If you're using **UNIGINE SDK *Sim***, select the ***Engineering*** `*-eng-sim-*.project` file when importing the sample. After import, you can upgrade the project to the **Sim** version directly in SDK Browser - just click *Upgrade*, choose the SDK **Sim** version, and adjust any additional settings you want to use in the configuration window that opens.
 
 4. **Repair the project**:
    - After importing, you'll see a **Repair** warning - this is expected, as only essential files are stored in the Git repository. SDK Browser will restore the rest.
@@ -48,7 +45,7 @@ To get started with the **Dear Imgui C++ Sample**:
    > - set(UNIGINE_DOUBLE False CACHE BOOL "Double coords")
    > + set(UNIGINE_DOUBLE True CACHE BOOL "Double coords")
    >```
-   > Make sure this setting matches the `.project` file you selected (e.g., `*-double.project` for double precision builds).
+   > Make sure this setting matches the `.project` file you selected (e.g., `*_double.project` for double precision builds).
 
 6. **Build** and **Run** the project.
 

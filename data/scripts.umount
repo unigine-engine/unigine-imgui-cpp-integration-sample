@@ -1,0 +1,8 @@
+{
+	"data_path": "../../../data/scripts/",
+	"readonly": true,
+	"guidsdb_ignore_filters": [
+		"*.gpu_cache",
+		"*.meta"
+	]
+}

@@ -1,0 +1,8 @@
+{
+	"data_path": "../../../data/editor2/",
+	"readonly": true,
+	"guidsdb_ignore_filters": [
+		"*.gpu_cache",
+		"*.meta"
+	]
+}

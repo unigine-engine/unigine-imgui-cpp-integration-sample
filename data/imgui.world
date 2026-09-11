@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<world version="2.21.0.0">
+<world version="2.22.0.0">
 	<data>
 		<user/>
 	</data>
@@ -785,7 +785,7 @@
 				<shadow_zfar>100</shadow_zfar>
 				<shadow_cascade_mode>0</shadow_cascade_mode>
 				<num_shadow_cascades>2</num_shadow_cascades>
-				<shadow_cascade_borders>0.0075000003 0.0500000007 0.200000003</shadow_cascade_borders>
+				<shadow_cascade_borders>0.150000006 1 1 1 1 1 1 1 1 1 1 1 1 1 1</shadow_cascade_borders>
 				<color_mode>1</color_mode>
 				<shadow_resolution>5</shadow_resolution>
 				<shadow_bias>1</shadow_bias>
