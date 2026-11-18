@@ -4,11 +4,36 @@
         "debug": false,
         "microprofile_enabled": false
     },
-    "id": "aabf36d4-2bd4-4744-a923-44e0f4c97e09",
+    "id": "d7382dac-3f66-410d-9b79-34ada38835eb",
+    "os_configs": {
+        "linux": {
+            "sdk": {
+                "edition": "entertainment",
+                "internal_version": 59,
+                "key": "tier0_bin_pro_linux-2.22",
+                "name": "UNIGINE 2 Entertainment",
+                "path": "",
+                "type": "bin",
+                "version": "2.22"
+            },
+            "up_to_date": true
+        },
+        "windows": {
+            "sdk": {
+                "edition": "entertainment",
+                "internal_version": 59,
+                "key": "tier0_bin_pro_windows-2.22",
+                "name": "UNIGINE 2 Entertainment",
+                "path": "",
+                "type": "bin",
+                "version": "2.22"
+            },
+            "up_to_date": true
+        }
+    },
     "project_settings": {
         "addons": [],
         "ai_docs": false,
-        "api": "cmakecpp",
         "assets": [],
         "build_tool": false,
         "component_system": false,
@@ -22,6 +47,14 @@
         "launcher_console": true,
         "launcher_gui": false,
         "name": "unigine-imgui-cpp-integration-sample",
+        "per_os": {
+            "linux": {
+                "api": "cmakecpp"
+            },
+            "windows": {
+                "api": "cmakecpp"
+            }
+        },
         "plugin_name": "",
         "plugin_vendor": "",
         "plugins": [
@@ -32,7 +65,7 @@
             "UnigineGeodetics",
             "UnigineUsdExchanger"
         ],
-        "precision": 1,
+        "precision": 0,
         "project_template": [
             "empty"
         ],
@@ -40,9 +73,9 @@
         "samples_pack": "",
         "starting_world": "default",
         "sw_distributed": false,
-        "template_id": "template_empty_cpp2.22.0_2cross",
+        "template_id": "template_empty_cpp2.22.0_3cross",
         "template_name": "empty_cpp",
-        "template_version": "2.22.0_2"
+        "template_version": "2.22.0_3"
     },
     "run_settings": {
         "app_name": "",
@@ -52,14 +85,5 @@
         "microprofile_enabled": false,
         "rpath": []
     },
-    "sdk": {
-        "edition": "entertainment",
-        "internal_version": 59,
-        "key": "tier0_bin_pro_linux-2.22",
-        "name": "UNIGINE 2 Entertainment",
-        "path": "",
-        "type": "bin",
-        "version": "2.22"
-    },
-    "version": "2"
+    "version": "3"
 }

@@ -117,7 +117,7 @@ static void create_font_texture()
 	font_texture->create2D(width, height, Texture::FORMAT_RGBA8, Texture::SAMPLER_FILTER_LINEAR);
 
 	auto blob = Blob::create();
-	blob->setData(pixels, width * height * 32);
+	blob->setData(pixels, width * height * 4);
 	font_texture->setBlob(blob);
 	blob->setData(nullptr, 0);
 

@@ -25,7 +25,7 @@ To get started with the **Dear Imgui C++ Sample**:
 
 3. **Add the sample project to SDK Browser**:
    - Go to the *My Projects* tab.
-   - Click *Add Existing*, select the `.project` file from the cloned folder (matching your OS - `*_win_*`/`*_lin_*`, edition, precision), and click *Import Project*.
+   - Click *Add Existing*, select the `.project` file from the cloned folder (cross-OS, works on both Windows and Linux; pick your edition and precision; requires an up-to-date SDK Browser), and click *Import Project*.
 
      ![Add Project](https://documentation-api.unigine.com/en/docs/latest/sdk/api_samples/third_party/photon/add_project.png)
 

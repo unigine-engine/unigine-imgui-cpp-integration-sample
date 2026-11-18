@@ -4,11 +4,36 @@
         "debug": false,
         "microprofile_enabled": false
     },
-    "id": "703873d2-8ced-4c93-b0d4-0b52f37721cc",
+    "id": "3f663b63-b8df-4c87-ab80-537959c5e155",
+    "os_configs": {
+        "linux": {
+            "sdk": {
+                "edition": "Engineering",
+                "internal_version": 59,
+                "key": "tier2_bin_linux-2.22",
+                "name": "UNIGINE 2 Engineering",
+                "path": "",
+                "type": "bin",
+                "version": "2.22"
+            },
+            "up_to_date": true
+        },
+        "windows": {
+            "sdk": {
+                "edition": "Engineering",
+                "internal_version": 59,
+                "key": "tier2_bin_windows-2.22",
+                "name": "UNIGINE 2 Engineering",
+                "path": "",
+                "type": "bin",
+                "version": "2.22"
+            },
+            "up_to_date": true
+        }
+    },
     "project_settings": {
         "addons": [],
         "ai_docs": false,
-        "api": "cmakecpp",
         "assets": [],
         "build_tool": false,
         "component_system": false,
@@ -22,6 +47,14 @@
         "launcher_console": true,
         "launcher_gui": false,
         "name": "unigine-imgui-cpp-integration-sample",
+        "per_os": {
+            "linux": {
+                "api": "cmakecpp"
+            },
+            "windows": {
+                "api": "cmakecpp"
+            }
+        },
         "plugin_name": "",
         "plugin_vendor": "",
         "plugins": [
@@ -40,9 +73,9 @@
         "samples_pack": "",
         "starting_world": "default",
         "sw_distributed": false,
-        "template_id": "template_empty_cpp2.22.0_2cross",
+        "template_id": "template_empty_cpp2.22.0_3cross",
         "template_name": "empty_cpp",
-        "template_version": "2.22.0_2"
+        "template_version": "2.22.0_3"
     },
     "run_settings": {
         "app_name": "",
@@ -52,14 +85,5 @@
         "microprofile_enabled": false,
         "rpath": []
     },
-    "sdk": {
-        "edition": "sim",
-        "internal_version": 59,
-        "key": "tier3_bin_windows-2.22",
-        "name": "UNIGINE 2 Sim",
-        "path": "",
-        "type": "bin",
-        "version": "2.22"
-    },
-    "version": "2"
+    "version": "3"
 }

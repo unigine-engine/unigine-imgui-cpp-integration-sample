@@ -4,11 +4,36 @@
         "debug": false,
         "microprofile_enabled": false
     },
-    "id": "d56d6a4a-5213-4031-98d5-13d6d9fa3c5b",
+    "id": "4f95a325-4c5b-4225-956f-e089a0bf6755",
+    "os_configs": {
+        "linux": {
+            "sdk": {
+                "edition": "community",
+                "internal_version": 59,
+                "key": "tier0_bin_linux-2.22",
+                "name": "UNIGINE 2 Community",
+                "path": "",
+                "type": "bin",
+                "version": "2.22"
+            },
+            "up_to_date": true
+        },
+        "windows": {
+            "sdk": {
+                "edition": "community",
+                "internal_version": 59,
+                "key": "tier0_bin_windows-2.22",
+                "name": "UNIGINE 2 Community",
+                "path": "",
+                "type": "bin",
+                "version": "2.22"
+            },
+            "up_to_date": true
+        }
+    },
     "project_settings": {
         "addons": [],
         "ai_docs": false,
-        "api": "cmakecpp",
         "assets": [],
         "build_tool": false,
         "component_system": false,
@@ -22,6 +47,14 @@
         "launcher_console": true,
         "launcher_gui": false,
         "name": "unigine-imgui-cpp-integration-sample",
+        "per_os": {
+            "linux": {
+                "api": "cmakecpp"
+            },
+            "windows": {
+                "api": "cmakecpp"
+            }
+        },
         "plugin_name": "",
         "plugin_vendor": "",
         "plugins": [
@@ -40,9 +73,9 @@
         "samples_pack": "",
         "starting_world": "default",
         "sw_distributed": false,
-        "template_id": "template_empty_cpp2.22.0_2cross",
+        "template_id": "template_empty_cpp2.22.0_3cross",
         "template_name": "empty_cpp",
-        "template_version": "2.22.0_2"
+        "template_version": "2.22.0_3"
     },
     "run_settings": {
         "app_name": "",
@@ -52,14 +85,5 @@
         "microprofile_enabled": false,
         "rpath": []
     },
-    "sdk": {
-        "edition": "academic",
-        "internal_version": 59,
-        "key": "tier4_bin_linux-2.22",
-        "name": "UNIGINE 2 Academic Research",
-        "path": "",
-        "type": "bin",
-        "version": "2.22"
-    },
-    "version": "2"
+    "version": "3"
 }
